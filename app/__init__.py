@@ -23,3 +23,4 @@ for code in default_exceptions.iterkeys():
 firebase = firebase.FirebaseApplication(app.config["FIREBASE"], None)
 
 from . import routes
+from . import cronjobs
