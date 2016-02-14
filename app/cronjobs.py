@@ -51,6 +51,6 @@ class AirportDelayRetriever:
                 print e
             else:
                 print "Updated Info at", self.last_updated.isoformat()
-            time.sleep(app.config["CRONJOB_CYCLE"])
+            time.sleep(app.config["CRONJOB_CHECK"])
 
 AirportDelayRetriever()

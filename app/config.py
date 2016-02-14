@@ -10,3 +10,4 @@ class BaseConfig(object):
     FIREBASE_AIRPORT_DATE = os.environ.get("FIREBASE_AIRPORT_DATE", "https://publicdata-airports.firebaseio.com")
     # in seconds
     CRONJOB_CYCLE = os.environ.get("CRONJOB_CYCLE", 3600)
+    CRONJOB_CHECK = os.environ.get("CRONJOB_CHECK", 300)
