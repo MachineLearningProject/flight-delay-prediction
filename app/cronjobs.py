@@ -18,14 +18,7 @@ class AirportDelayRetriever:
         self.source_firebase = FirebaseApplication(app.config["FIREBASE_AIRPORT_DATE"], None)
         self.last_updated = parser.parse(firebase.get("/", "last_updated"))
 
-        thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True
-
-        thread.start()
-
-
     def get_flight_info_from_firebase(self):
-
         response = self.source_firebase.get("", None)
         updated = parser.parse(response["_updated"])
 
@@ -52,5 +45,3 @@ class AirportDelayRetriever:
             else:
                 print "Updated Info at", self.last_updated.isoformat()
             time.sleep(app.config["CRONJOB_CHECK"])
-
-AirportDelayRetriever()
