@@ -28,7 +28,6 @@ class AirportDelayRetriever:
         print "Syncing Airpot Delays from", updated.isoformat()
         self.last_updated = updated
         update_str = updated.isoformat()
-        firebase.put("/", "last_updated", update_str)
         firebase_clean = FirebaseApplication(app.config["FIREBASE_CLEAN"], None)
 
         for airport_code, info in response.items():
@@ -40,7 +39,10 @@ class AirportDelayRetriever:
                 filtered_data = self.get_clean_data(info)
                 firebase_clean.put(url="/"+airport_code, name=date, data=filtered_data)
             except Exception as e:
-                print e
+                print "Something failed", e
+            else:
+                print "Finished syncing"
+                firebase.put("/", "last_updated", update_str)
 
 
     def get_clean_data(self, data):
