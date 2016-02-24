@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify, session
 from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import HTTPException
 
-from firebase import firebase
-
 from config import BaseConfig
 
 
@@ -19,7 +17,5 @@ def make_json_error(ex):
 
 for code in default_exceptions.iterkeys():
     app.error_handler_spec[None][code] = make_json_error
-
-firebase = firebase.FirebaseApplication(app.config["FIREBASE"], None)
 
 from . import routes
