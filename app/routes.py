@@ -19,14 +19,14 @@ def index():
 	print len(datapoints)
 	print len(labels)
 
-	print datapoints[ labels == True ]
+	#	print datapoints[ labels == True ]
 	print datapoints[10]
 
-	enc = preprocessing.OneHotEncoder()
-	print enc.fit(datapoints)
+	#enc = preprocessing.OneHotEncoder()
+	#print enc.fit(datapoints)
 
-	clf = RandomForestClassifier(n_estimators=10, min_samples_split=1)
-	clf = clf.fit(datapoints, labels)
+	#clf = RandomForestClassifier(n_estimators=10, min_samples_split=1)
+	#clf = clf.fit(datapoints, labels)
 
 	#scores = cross_val_score(clf, datapoints, labels)
 	#scores.mean()

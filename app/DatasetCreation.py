@@ -2,6 +2,7 @@ from dateutil.parser import parse
 import re
 import numpy as np
 from collections import Counter # ERASE
+import os.path # erase
 
 
 def ConstructDataset(response):
@@ -10,6 +11,9 @@ def ConstructDataset(response):
 	labels = []
 
 	erase = []
+
+	#if not os.path.exists("./airportIATA.txt"):
+	dic = writeCities_Airports(response)
 
 	# Iterate on each airport reports
 	for airportIATA, registries in response.items():
@@ -31,12 +35,16 @@ def ConstructDataset(response):
 				parsedDate = parse(registryDate.split()[0])
 				temp.append( parsedDate.day )
 				temp.append( parsedDate.month )
-				temp.append( str(parsedDate.strftime('%H')) )#temp.append( str(parsedDate.strftime('%H:%M')) )
+				temp.append( parsedDate.strftime('%H') )#temp.append( str(parsedDate.strftime('%H:%M')) )
 
-				temp.append( airportIATA )
-				temp.append( content['state'] )
-				temp.append( content['city'] )
-				
+				#temp.append( airportIATA )
+				#temp.append( content['state'] )
+				#temp.append( content['city'] )
+				IATA, city, state = getAirportBinarizedRepresentation(dic, airportIATA)
+				temp.extend(IATA)
+				temp.extend(city)
+				temp.extend(state)
+
 				''' This features should not be used for prediction '''
 				#temp.append(content['status']['reason']) SCARSE DATA, USE NAIVE
 				#temp.append(content['status']['type']) # Scarse data but consistent
@@ -72,6 +80,77 @@ def ConstructDataset(response):
 	labels = np.array(labels)
 
 	return (datapoints[p], labels[p])
+
+''' Read and Write to a File the cities and airports for HotEncoding '''
+def writeCities_Airports(response):
+
+	dic = {}
+	
+	states = {}
+	cities = {}
+
+	cIATA = cCity = cState = 0
+	for airportIATA, registries in response.items():
+		
+		if airportIATA == "last_updated":
+			continue
+
+		if not dic.has_key(airportIATA):
+			dic[airportIATA] = {"code": cIATA}
+
+		cIATA = cIATA +1
+
+		for registryDate, content in registries.items():
+			
+			if not states.has_key(content['state']): 
+				states[content['state']] = cState
+				cState = cState + 1
+			
+			if not cities.has_key(content['city']):
+				cities[content['city']] = cCity
+				cCity = cCity + 1
+
+			dic[airportIATA]["state"] = {"name": content['state'], "code": states[content["state"]]}
+			dic[airportIATA]["city"] = {"name": content['city'], "code": cities[content["city"]]}
+
+	dic["EXTRAS"] = { "maxIATA": cIATA, "maxCity": cCity, "maxState": cState }
+
+	'''
+	f_airports = open('airportIATA.txt', 'w')
+	map(lambda x: f_airports.write(str(x[0])+" "+x[1]+"\n"), enumerate(IATA))
+	f_airports.close()
+
+	f_states = open('US_States.txt', 'w')
+	map(lambda x: f_states.write(str(x[0])+" "+x[1]+"\n"), enumerate(states))
+	f_states.close()
+
+	f_cities = open('US_Cities.txt', 'w')
+	map(lambda x: f_cities.write(str(x[0])+" "+x[1]+"\n"), enumerate(cities))
+	f_cities.close()
+	'''
+	
+	return dic
+
+def getAirportBinarizedRepresentation(dic, IATA):
+
+	try:
+		IATACode = dic[IATA]["code"]
+		cityCode = dic[IATA]["city"]["code"]
+		stateCode = dic[IATA]["state"]["code"]
+
+
+		IATA_vector = list( "0" * int(dic["EXTRAS"]["maxIATA"]) )
+		city_vector = list( "0" * int(dic["EXTRAS"]["maxCity"]) )
+		state_vector = list( "0" * int(dic["EXTRAS"]["maxState"]) )
+
+		IATA_vector[IATACode] = 1
+		city_vector[cityCode] = 1
+		state_vector[stateCode] = 1
+
+	except Exception, e:
+		raise e
+
+	return IATA_vector, city_vector, state_vector
 
 
 # SCARSE DATA, USE probabilistic model instead of rules
