@@ -10,7 +10,10 @@ class Firebase:
 
     def get_all(self):
         response = self.firebase.get("/", None)
-        del response["metadata"]
+        if "metadata" in response:
+            del response["metadata"]
+        if "last_updated" in response:
+            del response["last_updated"]
         return response
 
     def get_metadata(self):
