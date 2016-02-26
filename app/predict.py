@@ -86,7 +86,7 @@ def get_all_wind_binarized(clean_data):
     windPair = []
     for code, events in clean_data.items():
         for date, event in events.items():
-            windPair.append( [float(event["wind_x"]), float(event["wind_y"])] )
+            windPair.append( (float(event["wind_x"]), float(event["wind_y"])) )
 
     return np.array(windPair)
 
@@ -136,14 +136,11 @@ def predict(airport_code):
     wind_binarized = get_all_wind_binarized(all_clean)
     print "-----", airports_binarized.shape, weathers_binarized.shape, wind_binarized.shape
 
-    features = [airports_binarized, weathers_binarized, wind_binarized]
-    merged_binarized = merge_binarized(features)
-    print merged_binarized.shape
+    features = [airports_binarized, weathers_binarized, wind_binarized] # , wind_binarized
+    datapoints = merge_binarized(features)
 
-    delays_binarized = get_all_delays_binarized(all_clean)
-    print delays_binarized.shape
+    labels = get_all_delays_binarized(all_clean)
 
-    datapoints, labels = permute(merged_binarized, delays_binarized)
     model = decide_model(datapoints, labels)
     #model = linear_model.Perceptron().fit(merged_binarized, delays_binarized)
 
@@ -153,6 +150,7 @@ def predict(airport_code):
     weather_binarized = get_weather_array(weathers, cleaned_data["weather"])
     transformed = DatasetCreation.writeCities_Airports(all_clean)
     airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(transformed, airport_code)
-    airport_binarized = np.concatenate((airport_binarized, weather_binarized))
+    wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
+    airport_binarized = np.concatenate((airport_binarized, weather_binarized, wind))
 
     return model.predict([airport_binarized])
