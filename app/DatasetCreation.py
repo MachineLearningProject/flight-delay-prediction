@@ -50,11 +50,7 @@ def ConstructDataset(response):
 				#temp.append(content['status']['type']) # Scarse data but consistent
 				temp.append( re.findall( "[-+]?\d+\.\d+", content['weather']['temp'] )[1] ) # 0 - F or 1 - C
 				temp.append( weatherSelection(content['weather']['weather']) )
-<<<<<<< HEAD
-				
-=======
 
->>>>>>> master
 				(wind, direction) = WindDirectionExtraction(content['weather']['wind'])
 				temp.append( wind )
 				temp.extend( direction )
@@ -117,20 +113,6 @@ def writeCities_Airports(response):
 			dic[airportIATA]["city"] = {"name": content['city'], "code": cities[content["city"]]}
 
 	dic["EXTRAS"] = { "maxIATA": cIATA, "maxCity": cCity, "maxState": cState }
-
-	'''
-	f_airports = open('airportIATA.txt', 'w')
-	map(lambda x: f_airports.write(str(x[0])+" "+x[1]+"\n"), enumerate(IATA))
-	f_airports.close()
-
-	f_states = open('US_States.txt', 'w')
-	map(lambda x: f_states.write(str(x[0])+" "+x[1]+"\n"), enumerate(states))
-	f_states.close()
-
-	f_cities = open('US_Cities.txt', 'w')
-	map(lambda x: f_cities.write(str(x[0])+" "+x[1]+"\n"), enumerate(cities))
-	f_cities.close()
-	'''
 
 	return dic
 
