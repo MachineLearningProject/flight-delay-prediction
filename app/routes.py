@@ -1,9 +1,10 @@
-from flask import request, jsonify, session, g
+from flask import jsonify
 
 from . import app
 import mapper
 import utils
 import predict
+
 
 @app.route("/", methods=["GET"])
 def index():
