@@ -97,6 +97,9 @@ def predict(airport_code):
     airport_status = firebase_source.get_airport(airport_code)
     cleaned_data = utils.get_clean_data(airport_status)
     weathers = firebase_clean.get_metadata()["weathers"]
-    weather = get_weather_array(weathers, cleaned_data["weather"])
+    weather_binarized = get_weather_array(weathers, cleaned_data["weather"])
+    transformed = DatasetCreation.writeCities_Airports(all_clean)
+    airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(transformed, airport_code)
+    airport_binarized = np.concatenate((airport_binarized, weather_binarized))
 
-    return model.predict([weather])
+    return model.predict([airport_binarized])
