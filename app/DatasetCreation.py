@@ -23,14 +23,14 @@ def ConstructDataset(response):
 			continue
 
 		for registryDate, content in registries.items():
-			
+
 			try:
 				temp = []
-				#print registryDate, airportIATA, content['state'], content['city'] 
+				#print registryDate, airportIATA, content['state'], content['city']
 				#print content['status']['reason'], content['status']['type']
-				#print content['weather']['weather'], content['weather']['wind'], content['weather']['visibility'] 
+				#print content['weather']['weather'], content['weather']['wind'], content['weather']['visibility']
 				#print content['delay']
-				
+
 				# Erase the noise in the date and parse it
 				parsedDate = parse(registryDate.split()[0])
 				temp.append( parsedDate.day )
@@ -49,19 +49,19 @@ def ConstructDataset(response):
 				#temp.append(content['status']['reason']) SCARSE DATA, USE NAIVE
 				#temp.append(content['status']['type']) # Scarse data but consistent
 				temp.append( re.findall( "[-+]?\d+\.\d+", content['weather']['temp'] )[1] ) # 0 - F or 1 - C
-				temp.append( weatherSelection(content['weather']['weather']) ) 
-				
+				temp.append( weatherSelection(content['weather']['weather']) )
+
 				(wind, direction) = WindDirectionExtraction(content['weather']['wind'])
 				temp.append( wind )
 				temp.append( direction )
 
 				temp.append( content['weather']['visibility'] )
-				
+
 				# Add the registry to the dataset
 				datapoints.append(temp)
 				labels.append(content['delay'])
-				
-				
+
+
 			# In case there is no available weather, the registry is skipped.
 			except Exception, e:
 				print "Error:", e, " not available"
@@ -72,7 +72,7 @@ def ConstructDataset(response):
 	for x in sorted(temp, reverse=True):
 		print x
 
-			
+
 	# Permute the data before returning it as a dataset
 	p = np.random.permutation(len(labels))
 
@@ -85,13 +85,13 @@ def ConstructDataset(response):
 def writeCities_Airports(response):
 
 	dic = {}
-	
+
 	states = {}
 	cities = {}
 
 	cIATA = cCity = cState = 0
 	for airportIATA, registries in response.items():
-		
+
 		if airportIATA == "last_updated":
 			continue
 
@@ -101,11 +101,10 @@ def writeCities_Airports(response):
 		cIATA = cIATA +1
 
 		for registryDate, content in registries.items():
-			
-			if not states.has_key(content['state']): 
+			if not states.has_key(content['state']):
 				states[content['state']] = cState
 				cState = cState + 1
-			
+
 			if not cities.has_key(content['city']):
 				cities[content['city']] = cCity
 				cCity = cCity + 1
@@ -128,29 +127,24 @@ def writeCities_Airports(response):
 	map(lambda x: f_cities.write(str(x[0])+" "+x[1]+"\n"), enumerate(cities))
 	f_cities.close()
 	'''
-	
+
 	return dic
 
 def getAirportBinarizedRepresentation(dic, IATA):
 
-	try:
-		IATACode = dic[IATA]["code"]
-		cityCode = dic[IATA]["city"]["code"]
-		stateCode = dic[IATA]["state"]["code"]
+	IATACode = dic[IATA]["code"]
+	cityCode = dic[IATA]["city"]["code"]
+	stateCode = dic[IATA]["state"]["code"]
 
+	IATA_vector = np.zeros(int(dic["EXTRAS"]["maxIATA"]))
+	city_vector = np.zeros(int(dic["EXTRAS"]["maxCity"]))
+	state_vector = np.zeros(int(dic["EXTRAS"]["maxState"]))
 
-		IATA_vector = list( "0" * int(dic["EXTRAS"]["maxIATA"]) )
-		city_vector = list( "0" * int(dic["EXTRAS"]["maxCity"]) )
-		state_vector = list( "0" * int(dic["EXTRAS"]["maxState"]) )
+	IATA_vector[IATACode] = 1
+	city_vector[cityCode] = 1
+	state_vector[stateCode] = 1
 
-		IATA_vector[IATACode] = 1
-		city_vector[cityCode] = 1
-		state_vector[stateCode] = 1
-
-	except Exception, e:
-		raise e
-
-	return IATA_vector, city_vector, state_vector
+	return np.concatenate([IATA_vector, city_vector, state_vector])
 
 
 # SCARSE DATA, USE probabilistic model instead of rules
