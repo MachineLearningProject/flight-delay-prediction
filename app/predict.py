@@ -14,6 +14,7 @@ from . import mapper
 from . import utils
 import DatasetCreation
 
+MODEL = None
 
 def clean_weather_string(s):
     return str(s).replace("/", " and ").replace("  ", " ")
@@ -58,14 +59,11 @@ def get_weather_array(weather_dict, weather_str):
         print "ERROR could not clean:", weather_str
     return arr
 
-def get_all_weathers_binarized(clean_data):
-    firebase_clean = mapper.get_clean_firebase()
-    weathers = firebase_clean.get_metadata()["weathers"]
-
+def get_all_weathers_binarized(clean_data, weather_metadata):
     weather_series = []
     for code, events in clean_data.items():
         for date, event in events.items():
-            weather_series.append(get_weather_array(weathers, event["weather"]))
+            weather_series.append(get_weather_array(weather_metadata, event["weather"]))
 
     return np.array(weather_series)
 
@@ -100,15 +98,6 @@ def get_all_wind_binarized(clean_data):
 def merge_binarized(arrays):
     return np.concatenate(arrays, axis=1)
 
-def permute(datapoints, labels):
-
-    p = np.random.permutation(len(labels))
-
-    datapoints = np.array(datapoints)
-    labels = np.array(labels)
-
-    return (datapoints, labels)
-
 def decide_model(datapoints, labels):
 
     classifiers = []
@@ -136,26 +125,36 @@ def predict(airport_code):
     firebase_source = mapper.get_source_firebase()
     firebase_clean = mapper.get_clean_firebase()
 
+    airport_status = firebase_source.get_airport(airport_code)
+    cleaned_data = utils.get_clean_data(airport_status)
+    metadata = firebase_clean.get_metadata()
+    weathers = metadata["weathers"]
+    airports = metadata["airports"]
+    weather_binarized = get_weather_array(weathers, cleaned_data["weather"])
+    airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(airports, airport_code)
+    wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
+    # airport_binarized = np.concatenate((airport_binarized, weather_binarized, wind))
+    airport_binarized = np.concatenate((weather_binarized, wind))
+    global MODEL
+    return MODEL.predict([airport_binarized])
+
+def build_model():
+    firebase_source = mapper.get_source_firebase()
+    firebase_clean = mapper.get_clean_firebase()
+
     all_clean = firebase_clean.get_all()
+    metadata = firebase_clean.get_metadata()
+    weathers = metadata["weathers"]
+    airports = metadata["airports"]
 
     airports_binarized = get_all_airports_binarized(all_clean)
-    weathers_binarized = get_all_weathers_binarized(all_clean)
+    weathers_binarized = get_all_weathers_binarized(all_clean, weathers)
     wind_binarized = get_all_wind_binarized(all_clean)
 
-    features = [airports_binarized, weathers_binarized, wind_binarized] # , wind_binarized
+    # features = [airports_binarized, weathers_binarized, wind_binarized]
+    features = [weathers_binarized, wind_binarized]
     datapoints = merge_binarized(features)
 
     labels = get_all_delays_binarized(all_clean)
-
-    model = decide_model(datapoints, labels)
-
-    airport_status = firebase_source.get_airport(airport_code)
-    cleaned_data = utils.get_clean_data(airport_status)
-    weathers = firebase_clean.get_metadata()["weathers"]
-    weather_binarized = get_weather_array(weathers, cleaned_data["weather"])
-    transformed = DatasetCreation.writeCities_Airports(all_clean)
-    airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(transformed, airport_code)
-    wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
-    airport_binarized = np.concatenate((airport_binarized, weather_binarized, wind))
-
-    return model.predict([airport_binarized])
+    global MODEL
+    MODEL = decide_model(datapoints, labels)
