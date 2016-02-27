@@ -142,26 +142,17 @@ def filter_time(clean_data):
             # high above 24 hours
             if datetime.now().time() > highLimit:
                 
-                if (parsedDate < highLimit) or (parsedDate > lowLimit): 
-                    #print "YES"
-                    pass
-                else:
+                if not ( (parsedDate < highLimit) or (parsedDate > lowLimit) ): 
                     del filteredData[code][date]
-
+                    
             # low below 0 hrs
             elif  lowLimit > datetime.now().time():
                 
-                if (parsedDate < highLimit) or (parsedDate < lowLimit):
-                    #print "YES"
-                    pass
-                else:
+                if not ( (parsedDate < highLimit) or (parsedDate < lowLimit) ):
                     del filteredData[code][date]
             else:
                 
-                if (parsedDate < highLimit) and (parsedDate > lowLimit):
-                    #print "YES"
-                    pass
-                else:
+                if not ( (parsedDate < highLimit) and (parsedDate > lowLimit) ):
                     del filteredData[code][date]
             
     return filteredData
