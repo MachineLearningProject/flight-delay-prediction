@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 import numpy as np
+from datetime import datetime, timedelta
+from dateutil.parser import parse
 from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn import cross_validation
@@ -125,11 +127,52 @@ def decide_model(datapoints, labels):
     print model, best
     return model
 
+def filter_time(clean_data):
+
+    filteredData = clean_data.copy() # hard copy
+    print filteredData == clean_data
+    lowLimit = (datetime.now().now() - timedelta(hours=2)).time()
+    highLimit = (datetime.now().now() + timedelta(hours=2)).time()
+
+    for code, events in clean_data.items():
+        for date, event in events.items():
+            parsedDate = parse(date.split()[0]).time()
+            #print lowLimit, parsedDate, highLimit, (parsedDate < highLimit) and (parsedDate > lowLimit)
+     
+            # high above 24 hours
+            if datetime.now().time() > highLimit:
+                
+                if (parsedDate < highLimit) or (parsedDate > lowLimit): 
+                    #print "YES"
+                    pass
+                else:
+                    del filteredData[code][date]
+
+            # low below 0 hrs
+            elif  lowLimit > datetime.now().time():
+                
+                if (parsedDate < highLimit) or (parsedDate < lowLimit):
+                    #print "YES"
+                    pass
+                else:
+                    del filteredData[code][date]
+            else:
+                
+                if (parsedDate < highLimit) and (parsedDate > lowLimit):
+                    #print "YES"
+                    pass
+                else:
+                    del filteredData[code][date]
+            
+    return filteredData
+
 def predict(airport_code):
     firebase_source = mapper.get_source_firebase()
     firebase_clean = mapper.get_clean_firebase()
 
     all_clean = firebase_clean.get_all()
+
+    filter_time(all_clean)
 
     airports_binarized = get_all_airports_binarized(all_clean)
     weathers_binarized = get_all_weathers_binarized(all_clean)
