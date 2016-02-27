@@ -41,6 +41,13 @@ def preprocess_weather():
     firebase_clean.firebase.put("/metadata", name="weathers", data=weather_dict)
     return weather_dict
 
+def preprocess_airports():
+    firebase_clean = mapper.get_clean_firebase()
+    all_clean = firebase_clean.get_all()
+
+    transformed = DatasetCreation.writeCities_Airports(all_clean)
+    firebase_clean.firebase.put("/metadata", name="airports", data=transformed)
+
 def get_weather_array(weather_dict, weather_str):
     cleaned = clean_weather_string(weather_str)
     arr = np.zeros(len(weather_dict))
