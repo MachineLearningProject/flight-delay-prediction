@@ -1,8 +1,7 @@
 
 def get_clean_data(data):
     if "weather" not in data or "weather" not in data["weather"]:
-        print "EXCEPTION", data
-        return None
+        raise Exception("Weather no found in data")
 
     filtered_data = {
         "code" : data["IATA"],
@@ -18,8 +17,7 @@ def get_clean_data(data):
     try:
         filtered_data["temp"] = float(temp)
     except Exception as e:
-        print "EXCEPTION: Could not parse temperature:", temp
-        return None
+        raise Exception("Could not parse temperature: %s" % temp)
 
     directions = {
         "North" :       [0, 1],
@@ -38,8 +36,7 @@ def get_clean_data(data):
     wind = wind[:at_index]
 
     if wind not in directions:
-        print "EXCEPTION: No direction found", data["weather"]["wind"]
-        return None
+        raise Exception("No direction found: %s" % data["weather"]["wind"])
 
     direction = directions[wind]
     filtered_data["wind_x"] = direction[0]
@@ -51,8 +48,7 @@ def get_clean_data(data):
     try:
         wind_magnitude = float(wind_magnitude)
     except Exception as e:
-        print "EXCEPTION: Could not parse wind:", wind
-        return None
+        raise Exception("Could not parse wind: %s" % wind)
 
     filtered_data["wind_magnitude"] = wind_magnitude
 
