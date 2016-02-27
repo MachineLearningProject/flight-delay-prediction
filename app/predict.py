@@ -134,7 +134,6 @@ def predict(airport_code):
     airports_binarized = get_all_airports_binarized(all_clean)
     weathers_binarized = get_all_weathers_binarized(all_clean)
     wind_binarized = get_all_wind_binarized(all_clean)
-    print "-----", airports_binarized.shape, weathers_binarized.shape, wind_binarized.shape
 
     features = [airports_binarized, weathers_binarized, wind_binarized] # , wind_binarized
     datapoints = merge_binarized(features)
@@ -142,7 +141,6 @@ def predict(airport_code):
     labels = get_all_delays_binarized(all_clean)
 
     model = decide_model(datapoints, labels)
-    #model = linear_model.Perceptron().fit(merged_binarized, delays_binarized)
 
     airport_status = firebase_source.get_airport(airport_code)
     cleaned_data = utils.get_clean_data(airport_status)
