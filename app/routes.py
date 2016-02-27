@@ -3,7 +3,7 @@ from flask import jsonify
 from . import app
 import mapper
 import utils
-import predict
+from predict import predictor
 
 
 @app.route("/", methods=["GET"])
@@ -15,9 +15,9 @@ def index():
 
 @app.route("/build", methods=["POST"])
 def build_model():
-    predict.preprocess_airports()
-    if not predict.MODEL:
-        predict.build_model()
+    predictor.preprocess_airports()
+    if not predictor.model:
+        predictor.build_model()
 
     return jsonify({"message:" : "OK"})
 
@@ -28,7 +28,7 @@ def predict_all_delays():
     results = {}
     for airport_code in airports.keys():
         try:
-            res = predict.predict(airport_code)
+            res = predictor.predict(airport_code)
             results[airport_code] = bool(res[0])
         except Exception as e:
             results[airport_code] = e.message
@@ -42,7 +42,7 @@ def predict_delay(airport_code):
     airport_status = firebase_source.get_airport(airport_code)
     cleaned_data = utils.get_clean_data(airport_status)
 
-    res = predict.predict(airport_code)
+    res = predictor.predict(airport_code)
     cleaned_data["prediction"] = bool(res[0])
     return jsonify(cleaned_data)
 
