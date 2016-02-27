@@ -53,7 +53,7 @@ def ConstructDataset(response):
 
 				(wind, direction) = WindDirectionExtraction(content['weather']['wind'])
 				temp.append( wind )
-				temp.append( direction )
+				temp.extend( direction )
 
 				temp.append( content['weather']['visibility'] )
 
@@ -114,20 +114,6 @@ def writeCities_Airports(response):
 
 	dic["EXTRAS"] = { "maxIATA": cIATA, "maxCity": cCity, "maxState": cState }
 
-	'''
-	f_airports = open('airportIATA.txt', 'w')
-	map(lambda x: f_airports.write(str(x[0])+" "+x[1]+"\n"), enumerate(IATA))
-	f_airports.close()
-
-	f_states = open('US_States.txt', 'w')
-	map(lambda x: f_states.write(str(x[0])+" "+x[1]+"\n"), enumerate(states))
-	f_states.close()
-
-	f_cities = open('US_Cities.txt', 'w')
-	map(lambda x: f_cities.write(str(x[0])+" "+x[1]+"\n"), enumerate(cities))
-	f_cities.close()
-	'''
-
 	return dic
 
 def getAirportBinarizedRepresentation(dic, IATA):
@@ -159,7 +145,19 @@ def WindDirectionExtraction(windDirection):
 
 	windDir = windDirection.split("at")
 
-	direction = windDir[0].strip()
+	directions = {
+		"North": (0, 1),
+		"Northwest": (-1,1),
+		"West": (-1, 0),
+		"Southwest": (-1, -1),
+		"South": (0,-1),
+		"Southeast": (1,-1),
+		"East": (1, 0),
+		"Northeast": (1, 1),
+		"Variable": (0, 0)
+	}
+
+	direction = directions[ windDir[0].strip() ]
 	wind = re.findall( "\d+\.\d+", windDir[1])[0]
 
 	return (wind, direction)

@@ -4,6 +4,10 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn import cross_validation
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.cross_validation import cross_val_score
+from sklearn.neighbors import KNeighborsClassifier
 from firebase.firebase import FirebaseApplication
 
 from . import mapper
@@ -67,6 +71,7 @@ def get_all_delays_binarized(clean_data):
     return np.array(delay_series)
 
 def get_all_airports_binarized(clean_data):
+
     transformed = DatasetCreation.writeCities_Airports(clean_data)
     airports_binarized = []
     for code, events in clean_data.items():
@@ -76,8 +81,49 @@ def get_all_airports_binarized(clean_data):
 
     return np.array(airports_binarized)
 
+def get_all_wind_binarized(clean_data):
+
+    windPair = []
+    for code, events in clean_data.items():
+        for date, event in events.items():
+            windPair.append( (float(event["wind_x"]), float(event["wind_y"])) )
+
+    return np.array(windPair)
+
 def merge_binarized(arrays):
     return np.concatenate(arrays, axis=1)
+
+def permute(datapoints, labels):
+
+    p = np.random.permutation(len(labels))
+
+    datapoints = np.array(datapoints)
+    labels = np.array(labels)
+
+    return (datapoints, labels)
+
+def decide_model(datapoints, labels):
+
+    classifiers = []
+    classifiers.append( RandomForestClassifier(n_estimators=10, min_samples_split=1) )
+    classifiers.append( DecisionTreeClassifier(max_depth=None, min_samples_split=1, random_state=0) )
+    classifiers.append( linear_model.Perceptron() )
+    #classifiers.append( linear_model.SGDClassifier() )
+    #classifiers.append( KNeighborsClassifier() )
+
+    best = 0
+    model = None
+    for clf in classifiers:
+        fit = clf.fit(datapoints, labels)
+        scores = cross_val_score(fit, datapoints, labels, cv=10, n_jobs=-1)
+        res = scores.mean()
+
+        if res > best:
+            best = res
+            model = fit
+
+    print model, best
+    return model
 
 def predict(airport_code):
     firebase_source = mapper.get_source_firebase()
@@ -87,12 +133,14 @@ def predict(airport_code):
 
     airports_binarized = get_all_airports_binarized(all_clean)
     weathers_binarized = get_all_weathers_binarized(all_clean)
+    wind_binarized = get_all_wind_binarized(all_clean)
 
-    features = [airports_binarized, weathers_binarized]
-    merged_binarized = merge_binarized(features)
+    features = [airports_binarized, weathers_binarized, wind_binarized] # , wind_binarized
+    datapoints = merge_binarized(features)
 
-    delays_binarized = get_all_delays_binarized(all_clean)
-    model = linear_model.Perceptron().fit(merged_binarized, delays_binarized)
+    labels = get_all_delays_binarized(all_clean)
+
+    model = decide_model(datapoints, labels)
 
     airport_status = firebase_source.get_airport(airport_code)
     cleaned_data = utils.get_clean_data(airport_status)
@@ -100,6 +148,7 @@ def predict(airport_code):
     weather_binarized = get_weather_array(weathers, cleaned_data["weather"])
     transformed = DatasetCreation.writeCities_Airports(all_clean)
     airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(transformed, airport_code)
-    airport_binarized = np.concatenate((airport_binarized, weather_binarized))
+    wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
+    airport_binarized = np.concatenate((airport_binarized, weather_binarized, wind))
 
     return model.predict([airport_binarized])
