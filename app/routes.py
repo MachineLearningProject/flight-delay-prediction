@@ -23,17 +23,11 @@ def build_model():
 
 @app.route("/predict", methods=["GET"])
 def predict_all_delays():
-    firebase_clean = mapper.get_clean_firebase()
-    airports = firebase_clean.get_metadata()["airports"]
-    results = {}
-    for airport_code in airports.keys():
-        try:
-            res = predictor.predict(airport_code)
-            results[airport_code] = bool(res[0])
-        except Exception as e:
-            results[airport_code] = e.message
-            pass
-
+    results = None
+    try:
+        results = predictor.predict_all()
+    except Exception as e:
+        return jsonify({"message" : e.message})
     return jsonify(results)
 
 @app.route("/predict/<airport_code>", methods=["GET"])
