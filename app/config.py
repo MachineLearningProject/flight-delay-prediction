@@ -12,3 +12,8 @@ class BaseConfig(object):
     # in seconds
     CRONJOB_CYCLE = os.environ.get("CRONJOB_CYCLE", 3600)
     CRONJOB_CHECK = os.environ.get("CRONJOB_CHECK", 300)
+
+    # Binarization config
+    TIME_SLOTS = os.environ.get("TIME_SLOTS", 24)
+    SLOT_HOUR_SIZE = 24 / TIME_SLOTS
+

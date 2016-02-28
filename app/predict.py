@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 import numpy as np
+from datetime import datetime, timedelta
+from dateutil.parser import parse
 from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn import cross_validation
@@ -10,6 +12,7 @@ from sklearn.cross_validation import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from firebase.firebase import FirebaseApplication
 
+from . import app
 from . import mapper
 from . import utils
 import DatasetCreation
@@ -102,6 +105,23 @@ class Predictor:
 
         return np.array(windPair)
 
+    def binarize_time(self, datetime):
+        slot = datetime.hour / app.config["SLOT_HOUR_SIZE"]
+        row = np.zeros(app.config["TIME_SLOTS"])
+        row[slot] = 1
+        return row
+
+    def get_all_times_binarized(self, clean_data):
+        # we will experiment with having hour as features
+        times_binarized = []
+        for code, events in clean_data.items():
+            for date, event in events.items():
+                parsed_date = parse(date.split()[0])
+                row = self.binarize_time(parsed_date)
+                times_binarized.append(row)
+
+        return np.array(times_binarized)
+
     def merge_binarized(self, arrays):
         return np.concatenate(arrays, axis=1)
 
@@ -136,7 +156,8 @@ class Predictor:
         weather_binarized = self.get_weather_array(cleaned_data["weather"])
         airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(self.airports_metadata, airport_code)
         wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
-        # airport_binarized = np.concatenate((airport_binarized, weather_binarized, wind))
+        time_binarized = self.binarize_time(datetime.now())
+
         airport_binarized = np.concatenate((weather_binarized, wind))
         return self.model.predict([airport_binarized])
 
@@ -148,9 +169,9 @@ class Predictor:
         airports_binarized = self.get_all_airports_binarized(all_clean)
         weathers_binarized = self.get_all_weathers_binarized(all_clean)
         wind_binarized = self.get_all_wind_binarized(all_clean)
+        times_binarized = self.get_all_times_binarized(all_clean)
 
-        # features = [airports_binarized, weathers_binarized, wind_binarized]
-        features = [weathers_binarized, wind_binarized]
+        features = [weathers_binarized, wind_binarized, times_binarized]
         datapoints = self.merge_binarized(features)
 
         labels = self.get_all_delays_binarized(all_clean)
