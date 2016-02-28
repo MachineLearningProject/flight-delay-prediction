@@ -145,21 +145,36 @@ class Predictor:
                 best = res
                 model = fit
 
-        print model, best
+        print type(model), best
         return model
 
-    def predict(self, airport_code):
-        firebase_source = mapper.get_source_firebase()
-
-        airport_status = firebase_source.get_airport(airport_code)
+    # airport_status must come from source_firebase
+    def binarize_airport(self, airport_code, airport_status):
         cleaned_data = utils.get_clean_data(airport_status)
         weather_binarized = self.get_weather_array(cleaned_data["weather"])
         airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(self.airports_metadata, airport_code)
         wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
         time_binarized = self.binarize_time(datetime.now())
 
-        airport_binarized = np.concatenate((weather_binarized, wind))
+        return np.concatenate((weather_binarized, wind, time_binarized))
+
+    def predict(self, airport_code):
+        firebase_source = mapper.get_source_firebase()
+
+        airport_status = firebase_source.get_airport(airport_code)
+        airport_binarized = self.binarize_airport(airport_code, airport_status)
         return self.model.predict([airport_binarized])
+
+    def predict_all(self):
+        firebase_source = mapper.get_source_firebase()
+
+        all_source = firebase_source.get_all()
+        results = {}
+        for airport_code, airport_status in all_source.items():
+            airport_binarized = self.binarize_airport(airport_code, airport_status)
+            results[airport_code] = bool(self.model.predict([airport_binarized])[0])
+
+        return results
 
     def build_model(self):
         firebase_clean = mapper.get_clean_firebase()
