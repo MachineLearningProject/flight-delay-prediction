@@ -284,8 +284,12 @@ def filter_time(clean_data):
         return self.model.predict([airport_binarized])
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     def predict_all(self):
         firebase_source = mapper.get_source_firebase()
+=======
+    all_clean = filter_time(all_clean)
+>>>>>>> Stashed changes
 =======
     all_clean = filter_time(all_clean)
 >>>>>>> Stashed changes
