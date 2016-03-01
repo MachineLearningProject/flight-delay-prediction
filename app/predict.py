@@ -127,7 +127,7 @@ class Predictor:
         visibility_array = []
         for code, events in clean_data.items():
             for date, event in events.items():
-                visibility_array.append(event["visibility"])
+                visibility_array.append([event["visibility"]])
 
         return np.array(visibility_array)
 
@@ -136,7 +136,7 @@ class Predictor:
         temp_array = []
         for code, events in clean_data.items():
             for date, event in events.items():
-                temp_array.append(event["temp"])
+                temp_array.append([event["temp"]])
 
         return np.array(temp_array)
 
@@ -172,11 +172,9 @@ class Predictor:
         weather_binarized = self.get_weather_array(cleaned_data["weather"])
         airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(self.airports_metadata, airport_code)
         wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"], cleaned_data["wind_magnitude"] ]
-        temp = cleaned_data["temp"]
-        visibility = cleaned_data["visibility"]
+        temp = [cleaned_data["temp"] ]
+        visibility = [ cleaned_data["visibility"] ]
         time_binarized = self.binarize_time(datetime.now())
-
-        print "Input", np.concatenate((weather_binarized, wind, time_binarized, temp, visibility)).shape
 
         return np.concatenate((weather_binarized, wind, time_binarized, temp, visibility))
 
@@ -209,8 +207,6 @@ class Predictor:
         times_binarized = self.get_all_times_binarized(all_clean)
         temp = self.get_all_temp(all_clean)
         visibility = self.get_all_visibility(all_clean)
-
-        print airports_binarized.shape, temp.shape
 
         features = [weathers_binarized, wind_binarized, times_binarized, temp, visibility]
         datapoints = self.merge_binarized(features)
