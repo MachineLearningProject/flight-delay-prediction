@@ -8,10 +8,7 @@ from predict import predictor
 
 @app.route("/", methods=["GET"])
 def index():
-    firebase_dump = mapper.get_dump_firebase()
-    response = firebase_dump.get_all()
-    response = response or {}
-    return jsonify(response)
+    return app.send_static_file("index.html")
 
 @app.route("/build", methods=["POST"])
 def build_model():
@@ -27,6 +24,7 @@ def predict_all_delays():
     try:
         results = predictor.predict_all()
     except Exception as e:
+        print "ERROR", e.message
         return jsonify({"message" : e.message})
     return jsonify(results)
 
@@ -44,8 +42,12 @@ def predict_delay(airport_code):
 def get_airport_statuses():
     firebase_source = mapper.get_source_firebase()
     airports = firebase_source.get_all()
+    results = []
     for airport_code, status in airports.items():
-        if "status" in status:
-            del status["status"]
+        try:
+            results.append(utils.get_clean_data(status))
+        except:
+            pass
 
-    return jsonify(airports)
+    results = {"items":results}
+    return jsonify(results)
