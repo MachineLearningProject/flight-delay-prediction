@@ -1,0 +1,24 @@
+<div class="col-sm-2 text-center center">
+  {{airportStatus.code}}
+</div>
+<div class="col-sm-2 text-center">
+  {{airportStatus.weather}}
+</div>
+<div class="col-sm-2 text-center">
+  {{airportStatus.temp}} &#8451;
+</div>
+<div class="col-sm-1 text-center">
+  {{airportStatus.visibility}}
+</div>
+<div class="col-sm-2 text-center">
+  {{airportStatus.wind_magnitude}} mph {{transformWindDirection(airportStatus.wind_x, airportStatus.wind_y)}}
+</div>
+<div class="col-sm-1 text-center" ng-class="{ green: airportStatus.delay != true, red: airportStatus.delay == true }">
+  {{airportStatus.delay}}
+</div>
+<div class="col-sm-2 text-center inline">
+  <div>
+  {{ airportPredictions[airportStatus.code] }}
+    <span ng-if="airportPredictions[airportStatus.code] != airportStatus.delay" class="glyphicon glyphicon-remove"></span>
+  </div>
+</div>

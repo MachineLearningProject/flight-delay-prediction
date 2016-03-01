@@ -1,0 +1,40 @@
+<div ng-controller="mainController">
+  <div class="col-sm-2">
+    <button class="form-control" ng-click="order('code')">Airport Code
+      <span class="sortorder" ng-show="orderPredicate === 'code'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+  <div class="col-sm-2">
+    <button class="form-control" ng-click="order('weather')">Weather
+      <span class="sortorder" ng-show="orderPredicate === 'weather'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+  <div class="col-sm-2">
+    <button class="form-control" ng-click="order('temperature')">Temperature
+      <span class="sortorder" ng-show="orderPredicate === 'temperature'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+  <div class="col-sm-1">
+    <button class="form-control" ng-click="order('visibility')">Visibility
+      <span class="sortorder" ng-show="orderPredicate === 'visibility'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+  <div class="col-sm-2">
+    <button class="form-control" ng-click="order('wind')">Wind
+      <span class="sortorder" ng-show="orderPredicate === 'wind'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+  <div class="col-sm-1">
+    <button class="form-control" ng-click="order('delay')">Delay
+      <span class="sortorder" ng-show="orderPredicate === 'delay'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+  <div class="col-sm-2">
+    <button class="form-control" ng-click="order('prediction')">Prediction
+      <span class="sortorder" ng-show="orderPredicate === 'prediction'" ng-class="{reverse:orderReverse}"></span>
+    </button>
+  </div>
+
+  <div class="row" ng-repeat="airportStatus in airportStatuses | orderBy : orderPredicate : orderReverse" ng-include="'static/partials/airport-view.html'">
+  </div>
+</div>
