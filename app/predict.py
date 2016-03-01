@@ -159,9 +159,8 @@ class Predictor:
         for clf in classifiers:
 
             p = np.random.permutation(len(labels))
-
-            datapoints = np.array(datapoints)
-            labels = np.array(labels)
+            datapoints = datapoints[p]
+            labels = labels[p]
 
             partition = datapoints.shape[0]/10
             Tr_data = datapoints[partition:]
