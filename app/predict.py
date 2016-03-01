@@ -160,7 +160,7 @@ class Predictor:
 
             p = np.random.permutation(len(labels))
             datapoints = datapoints[p]
-            datapoints = labels[p]
+            labels = labels[p]
 
             partition = datapoints.shape[0]/10
             Tr_data = datapoints[partition:]
