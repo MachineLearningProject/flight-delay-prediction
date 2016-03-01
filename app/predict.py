@@ -9,6 +9,7 @@ from sklearn import cross_validation
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.cross_validation import cross_val_score
+from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
 from firebase.firebase import FirebaseApplication
 
@@ -62,10 +63,11 @@ class Predictor:
     def get_weather_array(self, weather_str):
         cleaned = self.clean_weather_string(weather_str)
         arr = np.zeros(len(self.weather_metadata))
-        if cleaned in self.weather_metadata:
+        if cleaned.strip() in self.weather_metadata:
             pos = self.weather_metadata[cleaned]
             arr[pos] = 1
         else:
+            print self.weather_metadata
             print "ERROR could not clean:", weather_str
         return arr
 
@@ -149,22 +151,56 @@ class Predictor:
         classifiers.append( RandomForestClassifier(n_estimators=10, min_samples_split=1) )
         classifiers.append( DecisionTreeClassifier(max_depth=None, min_samples_split=1, random_state=0) )
         classifiers.append( linear_model.Perceptron() )
-        #classifiers.append( linear_model.SGDClassifier() )
-        #classifiers.append( KNeighborsClassifier() )
+        classifiers.append( linear_model.SGDClassifier() )
+        classifiers.append( KNeighborsClassifier() )
 
         best = 0
         model = None
         for clf in classifiers:
-            fit = clf.fit(datapoints, labels)
+
+            p = np.random.permutation(len(labels))
+
+            datapoints = np.array(datapoints)
+            labels = np.array(labels)
+
+            partition = datapoints.shape[0]/10
+            Tr_data = datapoints[partition:]
+            Tr_labels = labels[partition:]
+            Te_data = datapoints[:partition]
+            Te_labels = labels[:partition]
+            
+            fit = clf.fit(Tr_data, Tr_labels)
+            '''
             scores = cross_val_score(fit, datapoints, labels, cv=10, n_jobs=-1)
             res = scores.mean()
+            '''
+            Te_pred = fit.predict(Te_data)
 
-            if res > best:
-                best = res
+            cr =  classification_report(Te_labels, Te_pred)
+            trues = self.get_precission_from_report(cr)[1]
+            
+            if trues > best:
+                best = trues
                 model = fit
 
         print type(model), best
         return model
+
+    def get_precission_from_report(self, cr):
+
+        splitted_report = cr.split('\n')
+        splitted_report = [x for x in splitted_report if len(x.strip()) != 0]
+
+        headers = splitted_report[0]
+        content = splitted_report[1:-1]
+
+        headers =  headers.split()
+        content = np.array([x.split() for x in content])
+
+        precision_false = content[:,1][0]
+        precision_true = content[:,1][1]
+
+        return (precision_false, precision_true)
 
     # airport_status must come from source_firebase
     def binarize_airport(self, airport_code, airport_status):
