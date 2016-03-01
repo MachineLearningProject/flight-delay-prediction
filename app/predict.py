@@ -101,7 +101,7 @@ class Predictor:
         windPair = []
         for code, events in clean_data.items():
             for date, event in events.items():
-                windPair.append( (float(event["wind_x"]), float(event["wind_y"])) )
+                windPair.append( (float(event["wind_x"]), float(event["wind_y"]), float(event["wind_magnitude"])) )
 
         return np.array(windPair)
 
@@ -121,6 +121,24 @@ class Predictor:
                 times_binarized.append(row)
 
         return np.array(times_binarized)
+
+    def get_all_visibility(self, clean_data):
+
+        visibility_array = []
+        for code, events in clean_data.items():
+            for date, event in events.items():
+                visibility_array.append([event["visibility"]])
+
+        return np.array(visibility_array)
+
+    def get_all_temp(self, clean_data):
+
+        temp_array = []
+        for code, events in clean_data.items():
+            for date, event in events.items():
+                temp_array.append([event["temp"]])
+
+        return np.array(temp_array)
 
     def merge_binarized(self, arrays):
         return np.concatenate(arrays, axis=1)
@@ -153,10 +171,12 @@ class Predictor:
         cleaned_data = utils.get_clean_data(airport_status)
         weather_binarized = self.get_weather_array(cleaned_data["weather"])
         airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(self.airports_metadata, airport_code)
-        wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"] ]
+        wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"], cleaned_data["wind_magnitude"] ]
+        temp = [cleaned_data["temp"] ]
+        visibility = [ cleaned_data["visibility"] ]
         time_binarized = self.binarize_time(datetime.now())
 
-        return np.concatenate((weather_binarized, wind, time_binarized))
+        return np.concatenate((weather_binarized, wind, time_binarized, temp, visibility))
 
     def predict(self, airport_code):
         firebase_source = mapper.get_source_firebase()
@@ -185,8 +205,10 @@ class Predictor:
         weathers_binarized = self.get_all_weathers_binarized(all_clean)
         wind_binarized = self.get_all_wind_binarized(all_clean)
         times_binarized = self.get_all_times_binarized(all_clean)
+        temp = self.get_all_temp(all_clean)
+        visibility = self.get_all_visibility(all_clean)
 
-        features = [weathers_binarized, wind_binarized, times_binarized]
+        features = [weathers_binarized, wind_binarized, times_binarized, temp, visibility]
         datapoints = self.merge_binarized(features)
 
         labels = self.get_all_delays_binarized(all_clean)
