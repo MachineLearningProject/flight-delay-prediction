@@ -183,7 +183,7 @@ class Predictor:
 
         airport_status = firebase_source.get_airport(airport_code)
         airport_binarized = self.binarize_airport(airport_code, airport_status)
-        return self.predict([airport_binarized])
+        return self.model.predict([airport_binarized])
 
     def predict_all(self):
         firebase_source = mapper.get_source_firebase()
@@ -211,7 +211,6 @@ class Predictor:
         features = [weathers_binarized, wind_binarized, times_binarized, temp, visibility]
         datapoints = self.merge_binarized(features)
 
-        print "model:", datapoints.shape
         labels = self.get_all_delays_binarized(all_clean)
         self.model = self.decide_model(datapoints, labels)
 
