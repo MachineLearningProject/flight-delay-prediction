@@ -1,22 +1,22 @@
-<div class="col-sm-2 text-center center">
-  {{airportStatus.code}}
+<div class="col-md-3 text-center" ng-init="airportStatus.name = airportStatus.code" ng-mouseenter="airportStatus.name = airportStatus.city + ', ' + airportStatus.state" ng-mouseleave="airportStatus.name = airportStatus.code">
+  {{airportStatus.name}}
 </div>
-<div class="col-sm-2 text-center">
+<div class="col-md-2 text-center">
   {{airportStatus.weather}}
 </div>
-<div class="col-sm-2 text-center">
+<div class="col-md-1 text-center">
   {{airportStatus.temp}} &#8451;
 </div>
-<div class="col-sm-1 text-center">
+<div class="col-md-1 text-center">
   {{airportStatus.visibility}}
 </div>
-<div class="col-sm-2 text-center">
+<div class="col-md-2 text-center">
   {{airportStatus.wind_magnitude}} mph {{transformWindDirection(airportStatus.wind_x, airportStatus.wind_y)}}
 </div>
-<div class="col-sm-1 text-center" ng-class="{ green: airportStatus.delay != true, red: airportStatus.delay == true }">
+<div class="col-md-1 text-center" ng-class="{ green: airportStatus.delay != true, red: airportStatus.delay == true }">
   {{airportStatus.delay}}
 </div>
-<div class="col-sm-2 text-center inline">
+<div class="col-md-2 text-center inline">
   <div>
   {{ airportPredictions[airportStatus.code] }}
     <span ng-if="airportPredictions[airportStatus.code] != airportStatus.delay" class="glyphicon glyphicon-remove"></span>

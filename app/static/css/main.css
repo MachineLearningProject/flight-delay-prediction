@@ -12,3 +12,15 @@
 .green {
     color: green;
 }
+
+.row:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+}
+
+.col-md:not(:last-child) {
+    border-right: 1px solid #ccc;
+}
+
+#temperature-title {
+	padding-left: 0px;
+}
