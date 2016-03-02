@@ -28,7 +28,7 @@ class Predictor:
         self.airports_metadata = metadata["airports"]
 
     def clean_weather_string(self, s):
-        return str(s).replace("/", " and ").replace("  ", " ")
+        return str(s).replace("/", " and ").replace("  ", " ").strip()
 
     def preprocess_weather(self):
         firebase_clean = mapper.get_clean_firebase()
@@ -63,7 +63,7 @@ class Predictor:
     def get_weather_array(self, weather_str):
         cleaned = self.clean_weather_string(weather_str)
         arr = np.zeros(len(self.weather_metadata))
-        if cleaned.strip() in self.weather_metadata:
+        if cleaned in self.weather_metadata:
             pos = self.weather_metadata[cleaned]
             arr[pos] = 1
         else:
