@@ -67,7 +67,6 @@ class Predictor:
             pos = self.weather_metadata[cleaned]
             arr[pos] = 1
         else:
-            #print self.weather_metadata
             print "ERROR could not clean:", weather_str
         return arr
 
@@ -167,7 +166,7 @@ class Predictor:
             Tr_labels = labels[partition:]
             Te_data = datapoints[:partition]
             Te_labels = labels[:partition]
-            
+
             fit = clf.fit(Tr_data, Tr_labels)
             '''
             scores = cross_val_score(fit, datapoints, labels, cv=10, n_jobs=-1)
@@ -177,7 +176,7 @@ class Predictor:
 
             cr =  classification_report(Te_labels, Te_pred)
             trues = self.get_precission_from_report(cr)[1]
-            
+
             if trues > best:
                 best = trues
                 model = fit
