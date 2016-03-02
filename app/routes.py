@@ -15,7 +15,7 @@ def build_model():
     predictor.preprocess_airports()
     if not predictor.model:
         predictor.build_model()
-    
+
     return jsonify({"message:" : "OK"})
 
 @app.route("/predict", methods=["GET"])

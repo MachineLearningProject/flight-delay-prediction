@@ -7,7 +7,7 @@ from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn import cross_validation
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn import svm
 from sklearn.cross_validation import cross_val_score
 from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
@@ -67,7 +67,6 @@ class Predictor:
             pos = self.weather_metadata[cleaned]
             arr[pos] = 1
         else:
-            print self.weather_metadata
             print "ERROR could not clean:", weather_str
         return arr
 
@@ -148,10 +147,10 @@ class Predictor:
     def decide_model(self, datapoints, labels):
 
         classifiers = []
-        classifiers.append( RandomForestClassifier(n_estimators=10, min_samples_split=1) )
-        classifiers.append( DecisionTreeClassifier(max_depth=None, min_samples_split=1, random_state=0) )
+        classifiers.append( RandomForestClassifier(n_estimators=4) )
+        classifiers.append( svm.SVC(probability=True) )
         classifiers.append( linear_model.Perceptron() )
-        classifiers.append( linear_model.SGDClassifier() )
+        classifiers.append( linear_model.SGDClassifier(shuffle=True) )
         classifiers.append( KNeighborsClassifier() )
 
         best = 0
@@ -167,7 +166,7 @@ class Predictor:
             Tr_labels = labels[partition:]
             Te_data = datapoints[:partition]
             Te_labels = labels[:partition]
-            
+
             fit = clf.fit(Tr_data, Tr_labels)
             '''
             scores = cross_val_score(fit, datapoints, labels, cv=10, n_jobs=-1)
@@ -177,7 +176,7 @@ class Predictor:
 
             cr =  classification_report(Te_labels, Te_pred)
             trues = self.get_precission_from_report(cr)[1]
-            
+
             if trues > best:
                 best = trues
                 model = fit
