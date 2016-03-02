@@ -9,7 +9,6 @@ from firebase.firebase import FirebaseApplication
 from config import BaseConfig
 import utils
 import mapper
-from predict import predictor
 from . import app
 
 
