@@ -26,8 +26,6 @@ class Predictor:
         metadata = mapper.get_clean_firebase().get_metadata()
         self.weather_metadata = metadata["weathers"]
         self.airports_metadata = metadata["airports"]
-        if app.config["ENV"] == "production":
-            self.build_model()
 
     def clean_weather_string(self, s):
         return str(s).replace("/", " and ").replace("  ", " ").strip()
