@@ -152,8 +152,8 @@ class Predictor:
         classifiers.append( RandomForestClassifier(n_estimators=4) )
         classifiers.append( svm.SVC(probability=True) )
         classifiers.append( linear_model.Perceptron() )
-        classifiers.append( linear_model.SGDClassifier(shuffle=True) )
-        classifiers.append( KNeighborsClassifier() )
+        # classifiers.append( linear_model.SGDClassifier(shuffle=True) )
+        # classifiers.append( KNeighborsClassifier() )
 
         best = 0
         model = None
