@@ -69,9 +69,6 @@ class AirportDelayRetriever:
                     print e
 
     def run(self):
-        if not predictor.model:
-            predictor.build_model()
-
         while True:
             try:
                 self.get_flight_info_from_firebase()
