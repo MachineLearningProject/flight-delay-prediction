@@ -3,7 +3,6 @@ from collections import defaultdict
 import numpy as np
 from datetime import datetime, timedelta
 from dateutil.parser import parse
-from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn import cross_validation
 from sklearn.ensemble import RandomForestClassifier
@@ -29,28 +28,29 @@ class Predictor:
         if app.config["ENV"] == "production":
             self.build_model()
 
-    def clean_weather_string(self, s):
-        return str(s).replace("/", " and ").replace("  ", " ").strip()
+    def get_weather_strings(self, s):
+        # this functions tries to separate all different weathers that are happening
+        # and return them as an array
+        return s.replace(" and ", "/").replace("  ", " ").strip().split("/")
 
     def preprocess_weather(self):
         firebase_clean = mapper.get_clean_firebase()
         response = firebase_clean.get_all()
-        weathers = {}
+        weathers = set()
         for airport_code, date_status_dict in response.items():
             if type(date_status_dict) != dict or airport_code == "weathers":
                 continue
             for date, event in date_status_dict.items():
-                cleaned = self.clean_weather_string(event["weather"])
-                weathers[cleaned] = True
+                weathers.add(event["weather"])
 
-        label_encoder = preprocessing.LabelEncoder()
-        weathers = weathers.keys()
-        label_encoder.fit(weathers)
-        transformed = label_encoder.transform(weathers)
         weather_dict = {}
-        for i in range(len(weathers)):
-            weather_str = self.clean_weather_string(weathers[i])
-            weather_dict[weather_str] = transformed[i]
+        cleaned_weathers = set()
+        for weather in weathers:
+            for w in self.get_weather_strings(weather):
+                cleaned_weathers.add(w)
+
+        for i, weather in enumerate(cleaned_weathers):
+            weather_dict[weather] = i
 
         firebase_clean.firebase.put("/metadata", name="weathers", data=weather_dict)
         return weather_dict
@@ -63,13 +63,14 @@ class Predictor:
         firebase_clean.firebase.put("/metadata", name="airports", data=transformed)
 
     def get_weather_array(self, weather_str):
-        cleaned = self.clean_weather_string(weather_str)
+        weathers = self.get_weather_strings(weather_str)
         arr = np.zeros(len(self.weather_metadata))
-        if cleaned in self.weather_metadata:
-            pos = self.weather_metadata[cleaned]
-            arr[pos] = 1
-        else:
-            print "ERROR could not clean:", weather_str
+        for weather in weathers:
+            if weather in self.weather_metadata:
+                pos = self.weather_metadata[weather]
+                arr[pos] = 1
+            else:
+                print "ERROR could not clean:", weather
         return arr
 
     def get_all_weathers_binarized(self, clean_data):
