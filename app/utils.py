@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib.pyplot as plt
 
 def get_clean_data(data):
     if "weather" not in data or "weather" not in data["weather"]:
@@ -52,4 +54,53 @@ def get_clean_data(data):
 
     filtered_data["wind_magnitude"] = wind_magnitude
 
+    '''
+    filtered_data["reason"] = data["status"]["reason"]
+
+    '''
     return filtered_data
+
+def plot_classification_report(cr, title='Classification report ', cmap=plt.cm.Blues):
+
+    lines = cr.split('\n')
+
+    classes = []
+    plotMat = []
+    for line in lines[2 : (len(lines) - 3)]:
+        
+        lineSplit = line.split()
+        nClasses = len(lineSplit)
+
+        classes.append(lineSplit[0])
+        classValues = [float(x) for x in lineSplit[1: nClasses - 1]]
+        
+        plotMat.append(classValues)
+
+    plt.imshow(plotMat, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    x_tick_marks = np.arange(3)
+    y_tick_marks = np.arange(len(classes))
+    plt.xticks(x_tick_marks, ['precision', 'recall', 'f1-score'], rotation=45)
+    plt.yticks(y_tick_marks, classes)
+    plt.tight_layout()
+    plt.ylabel('Classes')
+    plt.xlabel('Measures')
+    plt.show()
+    
+    return classes
+
+def plot_confusion_matrix(cm, classes, title='Confusion matrix', cmap=plt.cm.Blues):
+
+    print cm
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+    plt.show()

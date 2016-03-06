@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 from sklearn.cross_validation import cross_val_score
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
 from firebase.firebase import FirebaseApplication
 
@@ -157,12 +158,13 @@ class Predictor:
 
         best = 0
         model = None
+        crBest = None
         for clf in classifiers:
 
             p = np.random.permutation(len(labels))
             datapoints = datapoints[p]
             labels = labels[p]
-
+            
             partition = datapoints.shape[0]/10
             Tr_data = datapoints[partition:]
             Tr_labels = labels[partition:]
@@ -182,8 +184,14 @@ class Predictor:
             if trues > best:
                 best = trues
                 model = fit
+                crBest = cr
 
         print type(model), best
+        classes = utils.plot_classification_report(cr)
+
+        cm = confusion_matrix(Te_labels, Te_pred)
+        utils.plot_confusion_matrix(cm, classes)
+        
         return model
 
     def get_precission_from_report(self, cr):
@@ -212,13 +220,13 @@ class Predictor:
         visibility = [ cleaned_data["visibility"] ]
         time_binarized = self.binarize_time(datetime.now())
 
-        return np.concatenate((weather_binarized, wind, time_binarized, temp, visibility))
+        return np.concatenate((weather_binarized, wind, time_binarized,  visibility))
 
     def predict(self, airport_code):
         firebase_source = mapper.get_source_firebase()
 
         airport_status = firebase_source.get_airport(airport_code)
-        airport_binarized = self.binarize_airport(airport_code, airport_status)
+        airport_binarized = self.binarize_airport(airport_code, temp, airport_status)
         return self.model.predict([airport_binarized])
 
     def predict_all(self):

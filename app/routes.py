@@ -13,6 +13,7 @@ def index():
 @app.route("/build", methods=["POST"])
 def build_model():
     predictor.preprocess_airports()
+    #predictor.preprocess_weather()
     if not predictor.model:
         predictor.build_model()
 
