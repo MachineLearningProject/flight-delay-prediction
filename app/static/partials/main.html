@@ -1,11 +1,13 @@
-<div ng-controller="mainController">
-  <div class="col-sm-2 text-center">Airport Code</div>
-  <div class="col-sm-2 text-center">Weather</div>
-  <div class="col-sm-2 text-center">Temperature</div>
-  <div class="col-sm-1 text-center">Visibility</div>
-  <div class="col-sm-2 text-center">Wind</div>
-  <div class="col-sm-1 text-center">Delay</div>
-  <div class="col-sm-2 text-center">Prediction</div>
+<div class="container-fluid" ng-controller="mainController">
+  <div class="row">
+    <div class="col-md-3 text-center"><b>Airport Code</b></div>
+    <div class="col-md-2 text-center"><b>Weather</b></div>
+    <div class="col-md-1 text-center" id="temperature-title"><b>Temperature</b></div>
+    <div class="col-md-1 text-center"><b>Visibility</b></div>
+    <div class="col-md-2 text-center"><b>Wind</b></div>
+    <div class="col-md-1 text-center"><b>Delay</b></div>
+    <div class="col-md-2 text-center"><b>Prediction</b></div>
+  </div>
   <div class="row" ng-repeat="airportStatus in airportStatuses" ng-include="'static/partials/airport-view.html'">
   </div>
 </div>

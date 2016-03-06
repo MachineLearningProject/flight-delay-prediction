@@ -9,7 +9,6 @@ from firebase.firebase import FirebaseApplication
 from config import BaseConfig
 import utils
 import mapper
-from predict import predictor
 from . import app
 
 
@@ -69,13 +68,9 @@ class AirportDelayRetriever:
                     print e
 
     def run(self):
-        if not predictor.model:
-            predictor.build_model()
-
         while True:
             try:
                 self.get_flight_info_from_firebase()
-                predictor.build_model()
             except Exception as e:
                 print e
             else:
