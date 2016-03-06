@@ -152,7 +152,7 @@ class Predictor:
         classifiers.append( svm.SVC(probability=True) )
         classifiers.append( linear_model.Perceptron() )
         classifiers.append( linear_model.SGDClassifier(shuffle=True) )
-        classifiers.append( KNeighborsClassifier() )
+        #classifiers.append( KNeighborsClassifier() )
 
         best = 0
         model = None
