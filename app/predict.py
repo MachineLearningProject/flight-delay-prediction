@@ -9,7 +9,7 @@ from sklearn import linear_model
 from sklearn import cross_validation
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
-from sklearn.cross_validation import cross_val_score
+from sklearn.cross_validation import cross_val_score, KFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
@@ -164,27 +164,38 @@ class Predictor:
             p = np.random.permutation(len(labels))
             datapoints = datapoints[p]
             labels = labels[p]
-            
+
+            '''
             partition = datapoints.shape[0]/10
             Tr_data = datapoints[partition:]
             Tr_labels = labels[partition:]
             Te_data = datapoints[:partition]
             Te_labels = labels[:partition]
+            '''
+            kf = KFold(labels.shape[0], n_folds=3)
 
-            fit = clf.fit(Tr_data, Tr_labels)
+            for train_index, test_index in kf:
+
+                Tr_data, Te_data = datapoints[train_index], datapoints[test_index]
+                Tr_labels, Te_labels = labels[train_index], labels[test_index]
+
+                fit = clf.fit(Tr_data, Tr_labels)
+                Te_pred = fit.predict(Te_data)
+
+                cr =  classification_report(Te_labels, Te_pred)
+                trues = self.get_precission_from_report(cr)[1]
+
+                if trues > best:
+                    best = trues
+                    model = fit
+                    
+                    crBest = cr
+                    cm = confusion_matrix(Te_labels, Te_pred)
+
             '''
             scores = cross_val_score(fit, datapoints, labels, cv=10, n_jobs=-1)
             res = scores.mean()
             '''
-            Te_pred = fit.predict(Te_data)
-
-            cr =  classification_report(Te_labels, Te_pred)
-            trues = self.get_precission_from_report(cr)[1]
-
-            if trues > best:
-                best = trues
-                model = fit
-                crBest = cr
 
         print type(model), best
         classes = utils.plot_classification_report(cr)
