@@ -1,4 +1,5 @@
 from collections import defaultdict
+import thread
 
 import numpy as np
 from datetime import datetime, timedelta
@@ -26,9 +27,8 @@ class Predictor:
         metadata = mapper.get_clean_firebase().get_metadata()
         self.weather_metadata = metadata["weathers"]
         self.airports_metadata = metadata["airports"]
-        if app.config["ENV"] == "production":
-            self.build_model()
         self.previous_delays = defaultdict(list)
+        thread.start_new_thread(self.build_model, ())
 
     def clean_weather_string(self, s):
         return str(s).replace("/", " and ").replace("  ", " ").strip()
@@ -186,7 +186,7 @@ class Predictor:
         classifiers.append( RandomForestClassifier(n_estimators=4) )
         classifiers.append( svm.SVC(probability=True) )
         classifiers.append( linear_model.Perceptron() )
-        # classifiers.append( linear_model.SGDClassifier(shuffle=True) )
+        classifiers.append( linear_model.SGDClassifier(shuffle=True) )
         # classifiers.append( KNeighborsClassifier() )
 
         best = 0
