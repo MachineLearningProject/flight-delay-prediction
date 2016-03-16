@@ -27,6 +27,7 @@ class Predictor:
         self.airports_metadata = metadata["airports"]
         if app.config["ENV"] == "production":
             self.build_model()
+        self.previous_delays = defaultdict(list)
 
     def get_weather_strings(self, s):
         # this functions tries to separate all different weathers that are happening
@@ -105,7 +106,7 @@ class Predictor:
         windPair = []
         for code, events in clean_data.items():
             for date, event in events.items():
-                windPair.append( (float(event["wind_x"]), float(event["wind_y"]), float(event["wind_magnitude"])) )
+                windPair.append( [ event["wind_magnitude"] ] )
 
         return np.array(windPair)
 
@@ -143,6 +144,39 @@ class Predictor:
                 temp_array.append([event["temp"]])
 
         return np.array(temp_array)
+
+    def get_all_previous_delays(self, clean_data, lag=3):
+        temp_array = []
+        # we don't know the delays of the first ones
+        for code, events in clean_data.items():
+            for i in range(lag):
+                temp_array.append(np.zeros(lag))
+
+            dates = events.keys()
+
+            for i in range(lag, len(dates)):
+                arr = np.zeros(lag)
+                for j in range(lag):
+                    previous_date = dates[i - lag + j]
+                    delay = int(events[previous_date]["delay"])
+                    arr[j] = delay
+
+                temp_array.append(arr)
+
+        return np.array(temp_array)
+
+    def save_previous_delays(self, clean_data, lag=3):
+        for code, events in clean_data.items():
+            dates = events.keys()
+            self.previous_delays[code] = [events[date] for date in dates[-lag:]]
+
+    def get_previous_delays_from_airport(self, airport_code):
+        lag = len(self.previous_delays[airport_code])
+        arr = np.zeros(lag)
+        for i, event in enumerate(self.previous_delays[airport_code]):
+            arr[i] = int(event["delay"])
+
+        return np.array(arr)
 
     def merge_binarized(self, arrays):
         return np.concatenate(arrays, axis=1)
@@ -208,12 +242,13 @@ class Predictor:
         cleaned_data = utils.get_clean_data(airport_status)
         weather_binarized = self.get_weather_array(cleaned_data["weather"])
         airport_binarized = DatasetCreation.getAirportBinarizedRepresentation(self.airports_metadata, airport_code)
-        wind = [ cleaned_data["wind_x"], cleaned_data["wind_y"], cleaned_data["wind_magnitude"] ]
+        wind = [ cleaned_data["wind_magnitude"] ]
         temp = [cleaned_data["temp"] ]
         visibility = [ cleaned_data["visibility"] ]
+        delays = self.get_previous_delays_from_airport(airport_code)
         time_binarized = self.binarize_time(datetime.now())
 
-        return np.concatenate((weather_binarized, wind, time_binarized, temp, visibility))
+        return np.concatenate((weather_binarized, wind, time_binarized, delays))
 
     def predict(self, airport_code):
         firebase_source = mapper.get_source_firebase()
@@ -244,8 +279,10 @@ class Predictor:
         times_binarized = self.get_all_times_binarized(all_clean)
         temp = self.get_all_temp(all_clean)
         visibility = self.get_all_visibility(all_clean)
+        previous_delays = self.get_all_previous_delays(all_clean)
+        self.save_previous_delays(all_clean)
 
-        features = [weathers_binarized, wind_binarized, times_binarized, temp, visibility]
+        features = [weathers_binarized, wind_binarized, times_binarized, previous_delays]
         datapoints = self.merge_binarized(features)
 
         labels = self.get_all_delays_binarized(all_clean)
