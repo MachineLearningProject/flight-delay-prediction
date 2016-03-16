@@ -263,8 +263,11 @@ class Predictor:
         all_source = firebase_source.get_all()
         results = {}
         for airport_code, airport_status in all_source.items():
-            airport_binarized = self.binarize_airport(airport_code, airport_status)
-            results[airport_code] = bool(self.model.predict([airport_binarized])[0])
+            try:
+                airport_binarized = self.binarize_airport(airport_code, airport_status)
+                results[airport_code] = bool(self.model.predict([airport_binarized])[0])
+            except Exception as e:
+                print "ERROR: in", airport_code, e.message, "skipping..."
 
         return results
 
