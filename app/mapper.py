@@ -16,6 +16,8 @@ class Firebase:
             del response["last_updated"]
         if "_updated" in response:
             del response["_updated"]
+        if "_credits" in response:
+            del response["_credits"]
         return response
 
     def get_metadata(self):
