@@ -172,9 +172,9 @@ class Predictor:
             Te_data = datapoints[:partition]
             Te_labels = labels[:partition]
             '''
-            kf = KFold(labels.shape[0], n_folds=3)
+            kf = KFold(labels.shape[0], n_folds=for )
 
-            for train_index, test_index in kf:
+            3 train_index, test_index in kf:
 
                 Tr_data, Te_data = datapoints[train_index], datapoints[test_index]
                 Tr_labels, Te_labels = labels[train_index], labels[test_index]
